@@ -1,3 +1,4 @@
+import { author } from "../models/Author";
 import book from "../models/Book";
 import { Request, Response } from "express";
 
@@ -22,11 +23,14 @@ class BookController {
   }
 
   static async addBook(req: Request, res: Response) {
+    const newBook = req.body;
     try {
-      const newBook = await book.create(req.body);
+      const foundAuthor = await author.findById(newBook.author);
+      const formattedBook = { ...newBook, author: { ...foundAuthor } };
+      const createdBook = await book.create(formattedBook);
       res
         .status(201)
-        .json({ message: "Book added successfully", book: newBook });
+        .json({ message: "Book added successfully", book: createdBook });
     } catch (err: any) {
       res.status(500).json({ message: `Failed to add book: ${err.message}` });
     }
@@ -53,6 +57,16 @@ class BookController {
       res
         .status(500)
         .json({ message: `Failed to delete book: ${err.message}` });
+    }
+  }
+
+  static async listBooksByPublisher(req: Request, res: Response) {
+    const publisher = req.query.publisher;
+    try {
+      const booksByPublisher = await book.find({ publisher: publisher });
+      res.status(200).json(booksByPublisher);
+    } catch (err: any) {
+      res.status(500).json({ message: `Failed to find books: ${err.message}` });
     }
   }
 }

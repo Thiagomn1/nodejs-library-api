@@ -2,9 +2,10 @@ import "dotenv/config";
 import express from "express";
 import connectDB from "./config/dbConnect";
 import bookRoutes from "./routes/bookRoutes";
+import authorRoutes from "./routes/authorRoutes";
 
 const app = express();
-app.use(express.json(), bookRoutes);
+app.use(express.json(), bookRoutes, authorRoutes);
 
 const PORT = 3000;
 
