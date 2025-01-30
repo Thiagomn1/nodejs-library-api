@@ -1,4 +1,4 @@
-import mongoose, { mongo, MongooseError } from "mongoose";
+import mongoose from "mongoose";
 
 const authorSchema = new mongoose.Schema(
   {

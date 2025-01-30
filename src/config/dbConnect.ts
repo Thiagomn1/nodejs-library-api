@@ -11,8 +11,17 @@ const connectDB = async () => {
     });
 
     return mongoose.connection.db;
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err: unknown) {
+    let errorMessage = "An unknown error occurred";
+
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === "string") {
+      errorMessage = err;
+    } else if (typeof err === "object" && err !== null) {
+      errorMessage = JSON.stringify(err);
+    }
+    console.error(errorMessage);
     process.exit(1);
   }
 };
