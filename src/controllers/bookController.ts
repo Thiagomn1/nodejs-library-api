@@ -31,7 +31,6 @@ class BookController {
       } else {
         next(new NotFoundError("Book with specified ID not found."));
       }
-      res.status(200).json(bookJson);
     } catch (err: unknown) {
       next(err);
     }
