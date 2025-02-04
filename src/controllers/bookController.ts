@@ -1,49 +1,107 @@
+import NotFoundError from "../errors/NotFoundError";
 import { author } from "../models/Author";
 import book from "../models/Book";
-import { Request, Response } from "express";
-import { handleErrors } from "../middleware/errorHandler";
+import { NextFunction, Request, Response } from "express";
 
 class BookController {
-  static listBooks = handleErrors(async (req: Request, res: Response) => {
-    const books = await book.find({});
-    res.status(200).json(books);
-  });
+  static listBooks = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const books = await book.find({});
+      res.status(200).json(books);
+    } catch (err: unknown) {
+      next(err);
+    }
+  };
 
-  static listBookById = handleErrors(async (req: Request, res: Response) => {
-    const bookId = req.params.id;
-    const bookJson = await book.findById(bookId);
-    res.status(200).json(bookJson);
-  });
+  static listBookById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const bookId = req.params.id;
+      const bookJson = await book.findById(bookId);
 
-  static addBook = handleErrors(async (req: Request, res: Response) => {
-    const newBook = req.body;
-    const foundAuthor = await author.findById(newBook.author);
-    const formattedBook = { ...newBook, author: { ...foundAuthor } };
-    const createdBook = await book.create(formattedBook);
-    res
-      .status(201)
-      .json({ message: "Book added successfully", book: createdBook });
-  });
+      if (bookJson !== null) {
+        res.status(200).send(bookJson);
+      } else {
+        next(new NotFoundError("Book with specified ID not found."));
+      }
+      res.status(200).json(bookJson);
+    } catch (err: unknown) {
+      next(err);
+    }
+  };
 
-  static updateBook = handleErrors(async (req: Request, res: Response) => {
-    const bookId = req.params.id;
-    await book.findByIdAndUpdate(bookId, req.body);
-    res.status(200).json({ message: "Book updated successfully" });
-  });
+  static addBook = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const newBook = req.body;
+      const foundAuthor = await author.findById(newBook.author);
+      const formattedBook = { ...newBook, author: { ...foundAuthor } };
+      const createdBook = await book.create(formattedBook);
+      res
+        .status(201)
+        .json({ message: "Book added successfully", book: createdBook });
+    } catch (err: unknown) {
+      next(err);
+    }
+  };
 
-  static deleteBook = handleErrors(async (req: Request, res: Response) => {
-    const bookId = req.params.id;
-    await book.findByIdAndDelete(bookId);
-    res.status(200).json({ message: "Book deleted successfully" });
-  });
+  static updateBook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const bookId = req.params.id;
+      const bookUpdated = await book.findByIdAndUpdate(bookId, req.body);
 
-  static listBooksByPublisher = handleErrors(
-    async (req: Request, res: Response) => {
+      if (bookUpdated !== null) {
+        res.status(200).json({ message: "Book updated successfully" });
+      } else {
+        next(new NotFoundError("Book with specified ID not found."));
+      }
+    } catch (err: unknown) {
+      next(err);
+    }
+  };
+
+  static deleteBook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const bookId = req.params.id;
+      const deletedBook = await book.findByIdAndDelete(bookId);
+
+      if (deletedBook !== null) {
+        res.status(200).json({ message: "Book deleted successfully" });
+      } else {
+        next(new NotFoundError("Book with specified ID not found."));
+      }
+    } catch (err: unknown) {
+      next(err);
+    }
+  };
+
+  static listBooksByPublisher = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
       const publisher = req.query.publisher;
       const booksByPublisher = await book.find({ publisher: publisher });
       res.status(200).json(booksByPublisher);
+    } catch (err: unknown) {
+      next(err);
     }
-  );
+  };
 }
 
 export default BookController;
