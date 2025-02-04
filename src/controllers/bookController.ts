@@ -57,7 +57,9 @@ class BookController {
   ) => {
     try {
       const bookId = req.params.id;
-      const bookUpdated = await book.findByIdAndUpdate(bookId, req.body);
+      const bookUpdated = await book.findByIdAndUpdate(bookId, {
+        $set: req.body,
+      });
 
       if (bookUpdated !== null) {
         res.status(200).json({ message: "Book updated successfully" });
