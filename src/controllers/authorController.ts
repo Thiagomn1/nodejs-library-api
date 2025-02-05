@@ -1,5 +1,5 @@
 import NotFoundError from "../errors/NotFoundError";
-import { author } from "../models/Author";
+import { author } from "../models";
 import { NextFunction, Request, Response } from "express";
 
 class AuthorController {
