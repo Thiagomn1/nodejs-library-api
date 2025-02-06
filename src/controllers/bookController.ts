@@ -2,6 +2,16 @@ import NotFoundError from "../errors/NotFoundError";
 import { author, book } from "../models";
 import { NextFunction, Request, Response } from "express";
 
+interface ISearchFilter {
+  title?: string | RegExp;
+  publisher?: string;
+  pages?: {
+    $gte?: number;
+    $lte?: number;
+  };
+  author?: string;
+}
+
 class BookController {
   static listBooks = async (
     req: Request,
@@ -89,19 +99,63 @@ class BookController {
     }
   };
 
-  static listBooksByPublisher = async (
+  static listBooksByFilter = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const publisher = req.query.publisher;
-      const booksByPublisher = await book.find({ publisher: publisher });
-      res.status(200).json(booksByPublisher);
+      const search = await processSearch(
+        req.query as Record<string, string | undefined>
+      );
+
+      if (search) {
+        const booksByPublisher = await book.find(search).populate("author");
+        res.status(200).json(booksByPublisher);
+      } else {
+        res.status(200).send([]);
+      }
     } catch (err: unknown) {
       next(err);
     }
   };
+}
+
+async function processSearch(params: {
+  publisher?: string;
+  title?: string;
+  minPages?: string;
+  maxPages?: string;
+  authorName?: string;
+}) {
+  const publisher = params.publisher as string;
+  const title = params.title as string;
+  const minPages = params.minPages as string;
+  const maxPages = params.maxPages as string;
+  const authorName = params.authorName as string;
+
+  let search: ISearchFilter | null = {};
+
+  const regex = new RegExp(title, "i");
+
+  if (publisher) search.publisher = publisher;
+  if (title) search.title = regex;
+
+  if (minPages || maxPages) {
+    search.pages = {};
+    if (minPages) search.pages.$gte = parseInt(minPages);
+    if (maxPages) search.pages.$lte = parseInt(maxPages);
+  }
+
+  const foundAuthor = await author.findOne({ name: authorName });
+
+  if (foundAuthor) {
+    search.author = foundAuthor._id.toString();
+  } else {
+    search = null;
+  }
+
+  return search;
 }
 
 export default BookController;
