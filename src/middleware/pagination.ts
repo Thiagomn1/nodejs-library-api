@@ -4,7 +4,7 @@ import ValidationError from "../errors/ValidationError";
 
 export interface CustomRequest extends Request {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  result?: any; // or a more specific type based on the structure of your `result`
+  result?: any;
 }
 
 const paginate = async (
