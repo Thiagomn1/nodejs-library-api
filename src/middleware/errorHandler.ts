@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import BaseError from "../errors/BaseError";
 import CastError from "../errors/CastError";
 import ValidationError from "../errors/ValidationError";
-import NotFoundError from "../errors/NotFoundError";
 
 const errorHandler = (
   err: unknown,
@@ -17,7 +16,7 @@ const errorHandler = (
     return;
   } else if (err instanceof mongoose.Error.ValidationError) {
     new ValidationError(err).sendResponse(res);
-  } else if (err instanceof NotFoundError) {
+  } else if (err instanceof BaseError) {
     err.sendResponse(res);
   } else {
     new BaseError().sendResponse(res);

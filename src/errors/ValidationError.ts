@@ -7,13 +7,14 @@ interface ValidationErrorDetails {
 }
 
 class ValidationError extends CastError {
-  constructor(err: unknown) {
-    if (isValidationError(err)) {
+  constructor(err?: unknown) {
+    if (err && isValidationError(err)) {
       const errorMessages = Object.values(err.errors)
         .map((error) => error.message)
         .join("; ");
-
       super(`The following errors happened: ${errorMessages}`);
+    } else {
+      super("Validation failed due to invalid input.");
     }
   }
 }

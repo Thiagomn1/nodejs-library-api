@@ -1,16 +1,20 @@
 import NotFoundError from "../errors/NotFoundError";
+import { CustomRequest } from "../middleware/pagination";
 import { author } from "../models";
 import { NextFunction, Request, Response } from "express";
 
 class AuthorController {
   static listAuthors = async (
-    req: Request,
+    req: CustomRequest,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const authors = await author.find({});
-      res.status(200).json(authors);
+      const authors = author.find();
+
+      req.result = authors;
+
+      next();
     } catch (err: unknown) {
       next(err);
     }

@@ -1,4 +1,5 @@
 import NotFoundError from "../errors/NotFoundError";
+import { CustomRequest } from "../middleware/pagination";
 import { author, book } from "../models";
 import { NextFunction, Request, Response } from "express";
 
@@ -14,13 +15,16 @@ interface ISearchFilter {
 
 class BookController {
   static listBooks = async (
-    req: Request,
+    req: CustomRequest,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const books = await book.find({});
-      res.status(200).json(books);
+      const searchBooks = book.find();
+
+      req.result = searchBooks;
+
+      next();
     } catch (err: unknown) {
       next(err);
     }
@@ -33,7 +37,10 @@ class BookController {
   ) => {
     try {
       const bookId = req.params.id;
-      const bookJson = await book.findById(bookId);
+      const bookJson = await book
+        .findById(bookId)
+        .populate("author", "name")
+        .exec();
 
       if (bookJson !== null) {
         res.status(200).send(bookJson);
@@ -100,7 +107,7 @@ class BookController {
   };
 
   static listBooksByFilter = async (
-    req: Request,
+    req: CustomRequest,
     res: Response,
     next: NextFunction
   ) => {
@@ -110,8 +117,11 @@ class BookController {
       );
 
       if (search) {
-        const booksByPublisher = await book.find(search).populate("author");
-        res.status(200).json(booksByPublisher);
+        const booksByPublisher = book.find(search).populate("author");
+
+        req.result = booksByPublisher;
+
+        next();
       } else {
         res.status(200).send([]);
       }
