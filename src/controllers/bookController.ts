@@ -117,7 +117,7 @@ class BookController {
       );
 
       if (search) {
-        const booksByPublisher = book.find(search).populate("author");
+        const booksByPublisher = book.find(search).populate("author").exec();
 
         req.result = booksByPublisher;
 
